@@ -1,79 +1,70 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
   <defs>
     <radialGradient id="field" cx="0.3" cy="0.25" r="0.95">
-      <stop offset="0" stop-color="#2A1442"/>
-      <stop offset="1" stop-color="#06030B"/>
+      <stop offset="0" stop-color="#22183A"/>
+      <stop offset="1" stop-color="#05040A"/>
     </radialGradient>
     <radialGradient id="light" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#9B5CFF" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#9B5CFF" stop-opacity="0"/>
+      <stop offset="0" stop-color="#FF9A2E" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FF9A2E" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="fear" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8A3FD6"/>
-      <stop offset="0.6" stop-color="#3E1370"/>
-      <stop offset="1" stop-color="#22093F"/>
-    </linearGradient>
-    <linearGradient id="seduce" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0.35" stop-color="#C2378F"/>
-      <stop offset="1" stop-color="#4C0A3A"/>
-    </linearGradient>
-    <linearGradient id="ghost" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F3E6FF"/>
-      <stop offset="0.5" stop-color="#C9A2F5"/>
-      <stop offset="1" stop-color="#7A44C0" stop-opacity="0.75"/>
-    </linearGradient>
-    <radialGradient id="hole" cx="0.5" cy="0.4" r="0.6">
-      <stop offset="0" stop-color="#05010A"/>
-      <stop offset="0.75" stop-color="#1A0630"/>
-      <stop offset="1" stop-color="#3A1468"/>
+    <radialGradient id="disc" cx="0.42" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#3B4C8C"/>
+      <stop offset="0.55" stop-color="#1E2652"/>
+      <stop offset="1" stop-color="#0C0F24"/>
     </radialGradient>
-    <clipPath id="disc"><circle cx="200" cy="200" r="138"/></clipPath>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF2A8"/>
+      <stop offset="0.5" stop-color="#FFC926"/>
+      <stop offset="1" stop-color="#E08A00"/>
+    </linearGradient>
+    <linearGradient id="swirl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8F0FF"/>
+      <stop offset="1" stop-color="#8FA8FF"/>
+    </linearGradient>
+    <clipPath id="clip"><circle cx="200" cy="200" r="136"/></clipPath>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
-    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5"/></filter>
   </defs>
 
   <rect width="400" height="400" fill="url(#field)"/>
   <circle cx="200" cy="200" r="200" fill="url(#light)"/>
 
-  <!-- the DR ring: 50% / 75% / 100% -->
-  <g filter="url(#glow)" opacity="0.8">
-    <path d="M59.90 103.71 A170 170 0 0 1 340.10 103.71" stroke="#FFD100" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M353.44 126.81 A170 170 0 0 1 213.34 369.48" stroke="#FF8000" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M186.66 369.48 A170 170 0 0 1 46.56 126.81" stroke="#FF2020" stroke-width="20" stroke-linecap="round" fill="none"/>
+  <!-- the DR ring: 50% / 75% / 100%, thinner each stage -->
+  <g filter="url(#glow)" opacity="0.75">
+    <path d="M59.11 101.34 A172 172 0 0 1 340.89 101.34" stroke="#FFD100" stroke-width="24" stroke-linecap="round" fill="none"/>
+    <path d="M355.88 127.31 A172 172 0 0 1 214.99 371.35" stroke="#FF8000" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <path d="M185.01 371.35 A172 172 0 0 1 44.12 127.31" stroke="#FF2020" stroke-width="9" stroke-linecap="round" fill="none"/>
   </g>
   <g>
-    <path d="M59.90 103.71 A170 170 0 0 1 340.10 103.71" stroke="#FFD100" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M353.44 126.81 A170 170 0 0 1 213.34 369.48" stroke="#FF8000" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M186.66 369.48 A170 170 0 0 1 46.56 126.81" stroke="#FF2020" stroke-width="20" stroke-linecap="round" fill="none"/>
-    <path d="M66.56 101.26 A166 166 0 0 1 333.44 101.26" stroke="#FFE97A" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
-    <path d="M352.23 133.81 A166 166 0 0 1 218.79 364.93" stroke="#FFB766" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
-    <path d="M181.21 364.93 A166 166 0 0 1 47.77 133.81" stroke="#FF8A7A" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M59.11 101.34 A172 172 0 0 1 340.89 101.34" stroke="#FFD100" stroke-width="24" stroke-linecap="round" fill="none"/>
+    <path d="M355.88 127.31 A172 172 0 0 1 214.99 371.35" stroke="#FF8000" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <path d="M185.01 371.35 A172 172 0 0 1 44.12 127.31" stroke="#FF2020" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <path d="M66.85 99.67 A166.72 166.72 0 0 1 333.15 99.67" stroke="#FFF0A0" stroke-width="5.28" stroke-linecap="round" fill="none" opacity="0.75"/>
+    <path d="M355.09 134.17 A168.48 168.48 0 0 1 220.53 367.22" stroke="#FFC488" stroke-width="3.52" stroke-linecap="round" fill="none" opacity="0.75"/>
+    <path d="M179.28 368.75 A170.02 170.02 0 0 1 43.50 133.57" stroke="#FF9A8A" stroke-width="1.98" stroke-linecap="round" fill="none" opacity="0.75"/>
   </g>
 
-  <!-- the split icon -->
-  <circle cx="200" cy="200" r="146" fill="#0B0414"/>
-  <g clip-path="url(#disc)">
-    <rect x="0" y="0" width="400" height="400" fill="url(#fear)"/>
-    <polygon points="400,0 400,400 0,400" fill="url(#seduce)"/>
-    <line x1="400" y1="0" x2="0" y2="400" stroke="#F6D8FF" stroke-width="3" opacity="0.55"/>
-    <circle cx="200" cy="190" r="105" fill="#E9CCFF" opacity="0.28" filter="url(#glow)"/>
+  <!-- the disc -->
+  <circle cx="200" cy="200" r="144" fill="#05040A"/>
+  <g clip-path="url(#clip)">
+    <circle cx="200" cy="200" r="136" fill="url(#disc)"/>
+    <circle cx="200" cy="230" r="90" fill="#6F8CFF" opacity="0.18" filter="url(#glow)"/>
 
-    <!-- the screaming face -->
-    <g filter="url(#soft)" opacity="0.7">
-      <path d="M200 92 C252 92 270 140 266 190 C262 245 236 300 200 318 C164 300 138 245 134 190 C130 140 148 92 200 92 Z" fill="#E7CCFF"/>
-    </g>
-    <path d="M200 96 C248 96 264 140 260 190 C256 242 232 294 200 312 C168 294 144 242 140 190 C136 140 152 96 200 96 Z" fill="url(#ghost)"/>
-    <!-- eyes: wide and hollow, drooping at the outer corners (scared) -->
-    <ellipse cx="173" cy="182" rx="19" ry="26" transform="rotate(14 173 182)" fill="url(#hole)"/>
-    <ellipse cx="227" cy="182" rx="19" ry="26" transform="rotate(-14 227 182)" fill="url(#hole)"/>
-    <circle cx="175" cy="186" r="4" fill="#F4E4FF" opacity="0.9"/>
-    <circle cx="225" cy="186" r="4" fill="#F4E4FF" opacity="0.9"/>
-    <!-- the scream -->
-    <ellipse cx="200" cy="256" rx="21" ry="38" fill="url(#hole)"/>
-    <!-- brows: raised in the middle (fear), not lowered (anger) -->
-    <path d="M150 154 Q160 138 186 132" stroke="#5A2A96" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M250 154 Q240 138 214 132" stroke="#5A2A96" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- the swirl -->
+    <path d="M200.00 234.00 L200.05 233.50 L200.21 233.02 L200.46 232.57 L200.81 232.17 L201.25 231.83 L201.76 231.57 L202.34 231.40 L202.97 231.32 L203.64 231.35 L204.33 231.50 L205.02 231.76 L205.71 232.15 L206.36 232.65 L206.96 233.27 L207.50 234.00 L207.96 234.84 L208.31 235.77 L208.56 236.78 L208.68 237.86 L208.66 239.00 L208.49 240.17 L208.17 241.36 L207.70 242.55 L207.05 243.71 L206.25 244.83 L205.29 245.88 L204.17 246.84 L202.91 247.69 L201.52 248.42 L200.00 249.00 L198.38 249.42 L196.67 249.65 L194.90 249.69 L193.09 249.53 L191.25 249.16 L189.42 248.56 L187.62 247.75 L185.88 246.71 L184.22 245.46 L182.68 244.00 L181.27 242.34 L180.03 240.49 L178.97 238.47 L178.12 236.30 L177.50 234.00 L177.13 231.60 L177.01 229.11 L177.17 226.58 L177.62 224.03 L178.35 221.50 L179.37 219.01 L180.68 216.60 L182.27 214.31 L184.13 212.16 L186.25 210.18 L188.61 208.42 L191.19 206.89 L193.97 205.63 L196.92 204.66 L200.00 204.00 L203.19 203.67 L206.45 203.68 L209.73 204.04 L213.02 204.77 L216.25 205.85 L219.40 207.30 L222.42 209.10 L225.27 211.25 L227.91 213.72 L230.31 216.50 L232.43 219.56 L234.24 222.88 L235.70 226.41 L236.80 230.13 L237.50 234.00 L237.79 237.97 L237.66 242.00 L237.09 246.05 L236.09 250.07 L234.64 254.00 L232.77 257.81 L230.47 261.43 L227.77 264.84 L224.69 267.98 L221.25 270.81 L217.49 273.28 L213.44 275.37 L209.15 277.04 L204.65 278.26 L200.00 279.00 L195.24 279.25 L190.44 278.99 L185.63 278.22 L180.88 276.94 L176.25 275.14 L171.79 272.83 L167.55 270.04 L163.59 266.79 L159.95 263.10 L156.70 259.00 L153.87 254.54 L151.50 249.76 L149.63 244.71 L148.28 239.44 L147.50 234.00 L147.29 228.46 L147.67 222.88 L148.64 217.31 L150.21 211.83 L152.37 206.50 L155.10 201.38 L158.38 196.53 L162.19 192.01 L166.50 187.89 L171.25 184.20 L176.41 181.01 L181.92 178.36 L187.73 176.29 L193.78 174.83 L200.00 174.00 L206.32 173.83 L212.68 174.33 L219.00 175.51 L225.22 177.36 L231.25 179.87 L237.03 183.03 L242.49 186.81 L247.56 191.18 L252.18 196.09 L256.29 201.50 L259.84 207.36 L262.77 213.60 L265.05 220.17 L266.63 227.00 L267.50 234.00 L267.63 241.11 L267.00 248.24 L265.62 255.32 L263.49 262.27 L260.62 269.00 L257.04 275.44 L252.76 281.51 L247.84 287.13 L242.32 292.25 L236.25 296.79 L229.69 300.69 L222.71 303.90 L215.39 306.38 L207.79 308.09 L200.00 309.00 L192.11 309.09 L184.20 308.34 L176.36 306.76 L168.68 304.34 L161.25 301.12 L154.15 297.10" stroke="#0A0D20" stroke-width="15" fill="none" stroke-linecap="round" opacity="0.6" filter="url(#soft)"/>
+    <path d="M200.00 234.00 L200.05 233.50 L200.21 233.02 L200.46 232.57 L200.81 232.17 L201.25 231.83 L201.76 231.57 L202.34 231.40 L202.97 231.32 L203.64 231.35 L204.33 231.50 L205.02 231.76 L205.71 232.15 L206.36 232.65 L206.96 233.27 L207.50 234.00 L207.96 234.84 L208.31 235.77 L208.56 236.78 L208.68 237.86 L208.66 239.00 L208.49 240.17 L208.17 241.36 L207.70 242.55 L207.05 243.71 L206.25 244.83 L205.29 245.88 L204.17 246.84 L202.91 247.69 L201.52 248.42 L200.00 249.00 L198.38 249.42 L196.67 249.65 L194.90 249.69 L193.09 249.53 L191.25 249.16 L189.42 248.56 L187.62 247.75 L185.88 246.71 L184.22 245.46 L182.68 244.00 L181.27 242.34 L180.03 240.49 L178.97 238.47 L178.12 236.30 L177.50 234.00 L177.13 231.60 L177.01 229.11 L177.17 226.58 L177.62 224.03 L178.35 221.50 L179.37 219.01 L180.68 216.60 L182.27 214.31 L184.13 212.16 L186.25 210.18 L188.61 208.42 L191.19 206.89 L193.97 205.63 L196.92 204.66 L200.00 204.00 L203.19 203.67 L206.45 203.68 L209.73 204.04 L213.02 204.77 L216.25 205.85 L219.40 207.30 L222.42 209.10 L225.27 211.25 L227.91 213.72 L230.31 216.50 L232.43 219.56 L234.24 222.88 L235.70 226.41 L236.80 230.13 L237.50 234.00 L237.79 237.97 L237.66 242.00 L237.09 246.05 L236.09 250.07 L234.64 254.00 L232.77 257.81 L230.47 261.43 L227.77 264.84 L224.69 267.98 L221.25 270.81 L217.49 273.28 L213.44 275.37 L209.15 277.04 L204.65 278.26 L200.00 279.00 L195.24 279.25 L190.44 278.99 L185.63 278.22 L180.88 276.94 L176.25 275.14 L171.79 272.83 L167.55 270.04 L163.59 266.79 L159.95 263.10 L156.70 259.00 L153.87 254.54 L151.50 249.76 L149.63 244.71 L148.28 239.44 L147.50 234.00 L147.29 228.46 L147.67 222.88 L148.64 217.31 L150.21 211.83 L152.37 206.50 L155.10 201.38 L158.38 196.53 L162.19 192.01 L166.50 187.89 L171.25 184.20 L176.41 181.01 L181.92 178.36 L187.73 176.29 L193.78 174.83 L200.00 174.00 L206.32 173.83 L212.68 174.33 L219.00 175.51 L225.22 177.36 L231.25 179.87 L237.03 183.03 L242.49 186.81 L247.56 191.18 L252.18 196.09 L256.29 201.50 L259.84 207.36 L262.77 213.60 L265.05 220.17 L266.63 227.00 L267.50 234.00 L267.63 241.11 L267.00 248.24 L265.62 255.32 L263.49 262.27 L260.62 269.00 L257.04 275.44 L252.76 281.51 L247.84 287.13 L242.32 292.25 L236.25 296.79 L229.69 300.69 L222.71 303.90 L215.39 306.38 L207.79 308.09 L200.00 309.00 L192.11 309.09 L184.20 308.34 L176.36 306.76 L168.68 304.34 L161.25 301.12 L154.15 297.10" stroke="url(#swirl)" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+    <!-- the daze: orbit, stars behind, stars in front -->
+    <g transform="rotate(-8 200 152)"><polygon points="109.40,121.79 116.01,137.69 133.17,139.07 120.10,150.27 124.09,167.02 109.40,158.04 94.70,167.02 98.70,150.27 85.62,139.07 102.79,137.69" fill="url(#gold)" stroke="#7A4A00" stroke-width="2.5" stroke-linejoin="round"/><polygon points="106.40,133.29 109.17,139.97 116.38,140.55 110.89,145.25 112.57,152.29 106.40,148.52 100.23,152.29 101.90,145.25 96.41,140.55 103.62,139.97" fill="#FFF8D8" opacity="0.8"/></g>
+    <g transform="rotate(-8 200 152)"><polygon points="187.20,103.29 192.22,115.37 205.27,116.42 195.33,124.93 198.36,137.66 187.20,130.84 176.03,137.66 179.06,124.93 169.13,116.42 182.17,115.37" fill="url(#gold)" stroke="#7A4A00" stroke-width="2.5" stroke-linejoin="round"/><polygon points="184.92,112.03 187.03,117.11 192.51,117.55 188.33,121.12 189.61,126.47 184.92,123.60 180.23,126.47 181.50,121.12 177.33,117.55 182.81,117.11" fill="#FFF8D8" opacity="0.8"/></g>
+    <ellipse cx="200" cy="152" rx="92" ry="30" transform="rotate(-8 200 152)" fill="none" stroke="#FFE27A" stroke-width="3" stroke-dasharray="10 9" opacity="0.65"/>
+    <g transform="rotate(-8 200 152)"><polygon points="161.12,148.19 169.32,167.90 190.60,169.61 174.39,183.50 179.34,204.27 161.12,193.14 142.90,204.27 147.85,183.50 131.64,169.61 152.92,167.90" fill="url(#gold)" stroke="#7A4A00" stroke-width="2.5" stroke-linejoin="round"/><polygon points="157.40,162.45 160.84,170.73 169.78,171.45 162.97,177.28 165.05,186.00 157.40,181.33 149.75,186.00 151.83,177.28 145.02,171.45 153.96,170.73" fill="#FFF8D8" opacity="0.8"/></g>
+
+    <!-- the cooldown sweep -->
+    <path d="M200 200 L200.00 44.00 A156 156 0 0 1 327.79 289.48 Z" fill="#000000" opacity="0.42"/>
+    <line x1="200" y1="200" x2="311.40" y2="278.01" stroke="#FFE9A8" stroke-width="2.5" opacity="0.7"/>
   </g>
-  <circle cx="200" cy="200" r="140" fill="none" stroke="#0B0414" stroke-width="6"/>
-  <circle cx="200" cy="200" r="137" fill="none" stroke="#C9A2FF" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="200" cy="200" r="136" fill="none" stroke="#0B0716" stroke-width="5"/>
+  <circle cx="200" cy="200" r="133" fill="none" stroke="#B8C6FF" stroke-width="1.5" opacity="0.45"/>
 </svg>
