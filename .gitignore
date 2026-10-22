@@ -1,0 +1,5 @@
+# Local only (not in the public repository)
+private/
+docs/
+CLAUDE.md
+*.zip

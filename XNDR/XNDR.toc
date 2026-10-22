@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: XNDR
+## Notes: Diminishing returns of your own Fear, Howl of Terror, Seduction, Death Coil, Banish and engineering stuns, shown next to the target and focus portraits. Type /xndr
+## Author: Xn
+## Version: 1.0.0
+## X-Website: https://github.com/XNWLK/XNDR
+## SavedVariables: XNDRDB
+## IconTexture: Interface\Icons\Spell_Shadow_Possession
+
+XNDR.lua
