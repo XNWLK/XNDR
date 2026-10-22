@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <radialGradient id="field" cx="0.3" cy="0.25" r="0.95">
+      <stop offset="0" stop-color="#2A1442"/>
+      <stop offset="1" stop-color="#06030B"/>
+    </radialGradient>
+    <radialGradient id="light" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9B5CFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#9B5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fear" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8A3FD6"/>
+      <stop offset="0.6" stop-color="#3E1370"/>
+      <stop offset="1" stop-color="#22093F"/>
+    </linearGradient>
+    <linearGradient id="seduce" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0.35" stop-color="#C2378F"/>
+      <stop offset="1" stop-color="#4C0A3A"/>
+    </linearGradient>
+    <linearGradient id="ghost" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F3E6FF"/>
+      <stop offset="0.5" stop-color="#C9A2F5"/>
+      <stop offset="1" stop-color="#7A44C0" stop-opacity="0.75"/>
+    </linearGradient>
+    <radialGradient id="hole" cx="0.5" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#05010A"/>
+      <stop offset="0.75" stop-color="#1A0630"/>
+      <stop offset="1" stop-color="#3A1468"/>
+    </radialGradient>
+    <clipPath id="disc"><circle cx="200" cy="200" r="138"/></clipPath>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#field)"/>
+  <circle cx="200" cy="200" r="200" fill="url(#light)"/>
+
+  <!-- the DR ring: 50% / 75% / 100% -->
+  <g filter="url(#glow)" opacity="0.8">
+    <path d="M59.90 103.71 A170 170 0 0 1 340.10 103.71" stroke="#FFD100" stroke-width="20" stroke-linecap="round" fill="none"/>
+    <path d="M353.44 126.81 A170 170 0 0 1 213.34 369.48" stroke="#FF8000" stroke-width="20" stroke-linecap="round" fill="none"/>
+    <path d="M186.66 369.48 A170 170 0 0 1 46.56 126.81" stroke="#FF2020" stroke-width="20" stroke-linecap="round" fill="none"/>
+  </g>
+  <g>
+    <path d="M59.90 103.71 A170 170 0 0 1 340.10 103.71" stroke="#FFD100" stroke-width="20" stroke-linecap="round" fill="none"/>
+    <path d="M353.44 126.81 A170 170 0 0 1 213.34 369.48" stroke="#FF8000" stroke-width="20" stroke-linecap="round" fill="none"/>
+    <path d="M186.66 369.48 A170 170 0 0 1 46.56 126.81" stroke="#FF2020" stroke-width="20" stroke-linecap="round" fill="none"/>
+    <path d="M66.56 101.26 A166 166 0 0 1 333.44 101.26" stroke="#FFE97A" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M352.23 133.81 A166 166 0 0 1 218.79 364.93" stroke="#FFB766" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M181.21 364.93 A166 166 0 0 1 47.77 133.81" stroke="#FF8A7A" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  </g>
+
+  <!-- the split icon -->
+  <circle cx="200" cy="200" r="146" fill="#0B0414"/>
+  <g clip-path="url(#disc)">
+    <rect x="0" y="0" width="400" height="400" fill="url(#fear)"/>
+    <polygon points="400,0 400,400 0,400" fill="url(#seduce)"/>
+    <line x1="400" y1="0" x2="0" y2="400" stroke="#F6D8FF" stroke-width="3" opacity="0.55"/>
+    <circle cx="200" cy="190" r="105" fill="#E9CCFF" opacity="0.28" filter="url(#glow)"/>
+
+    <!-- the screaming face -->
+    <g filter="url(#soft)" opacity="0.7">
+      <path d="M200 92 C252 92 270 140 266 190 C262 245 236 300 200 318 C164 300 138 245 134 190 C130 140 148 92 200 92 Z" fill="#E7CCFF"/>
+    </g>
+    <path d="M200 96 C248 96 264 140 260 190 C256 242 232 294 200 312 C168 294 144 242 140 190 C136 140 152 96 200 96 Z" fill="url(#ghost)"/>
+    <!-- eyes: wide and hollow, drooping at the outer corners (scared) -->
+    <ellipse cx="173" cy="182" rx="19" ry="26" transform="rotate(14 173 182)" fill="url(#hole)"/>
+    <ellipse cx="227" cy="182" rx="19" ry="26" transform="rotate(-14 227 182)" fill="url(#hole)"/>
+    <circle cx="175" cy="186" r="4" fill="#F4E4FF" opacity="0.9"/>
+    <circle cx="225" cy="186" r="4" fill="#F4E4FF" opacity="0.9"/>
+    <!-- the scream -->
+    <ellipse cx="200" cy="256" rx="21" ry="38" fill="url(#hole)"/>
+    <!-- brows: raised in the middle (fear), not lowered (anger) -->
+    <path d="M150 154 Q160 138 186 132" stroke="#5A2A96" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M250 154 Q240 138 214 132" stroke="#5A2A96" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+  <circle cx="200" cy="200" r="140" fill="none" stroke="#0B0414" stroke-width="6"/>
+  <circle cx="200" cy="200" r="137" fill="none" stroke="#C9A2FF" stroke-width="1.5" opacity="0.5"/>
+</svg>
