@@ -3,9 +3,10 @@
 -- Diminishing returns of your own crowd control, shown next to the target and focus portraits.
 --
 -- WoW: Forever keeps the combat log and other players' casts away from addons, so XNDR only
--- counts what it can see: the spells you and your pet cast. CC from anyone else is not counted,
--- and the countdown is an estimate: it assumes each CC ran its full (diminished) length, since
--- the addon can't see when it broke, and then adds the reset window.
+-- counts what it can see: the spells you and your pet cast. CC from anyone else is not counted.
+-- Which spell is in which DR group comes from Forever's own game data (Spells.lua, generated).
+-- The countdown ends at the latest moment the DR can still be up: when the debuff's end can't be
+-- seen, XNDR assumes it ran its full (diminished) length, and then adds the reset window.
 
 local IsSecret = issecretvalue or function() return false end
 
@@ -17,66 +18,40 @@ local function Plain(value)
 	return value
 end
 
--- category and full duration against players, by spell ID (Classic ranks)
-local SPELLS = {
-	[5782] = {category = "fear", duration = 10}, -- Fear (Rank 1)
-	[6213] = {category = "fear", duration = 15}, -- Fear (Rank 2)
-	[6215] = {category = "fear", duration = 20}, -- Fear (Rank 3)
-	[5484] = {category = "fear", duration = 10, aoe = true}, -- Howl of Terror (Rank 1)
-	[17928] = {category = "fear", duration = 15, aoe = true}, -- Howl of Terror (Rank 2)
-	[6358] = {category = "fear", duration = 15}, -- Seduction (Succubus)
-	[6789] = {category = "horror", duration = 3}, -- Death Coil (Rank 1)
-	[17925] = {category = "horror", duration = 3}, -- Death Coil (Rank 2)
-	[17926] = {category = "horror", duration = 3}, -- Death Coil (Rank 3)
-	[710] = {category = "banish", duration = 20}, -- Banish (Rank 1), for enemy warlock pets
-	[18647] = {category = "banish", duration = 30}, -- Banish (Rank 2)
-	-- engineering stun gadgets
-	[4064] = {category = "stun", duration = 1}, -- Rough Copper Bomb
-	[4065] = {category = "stun", duration = 1}, -- Large Copper Bomb
-	[4066] = {category = "stun", duration = 2}, -- Small Bronze Bomb
-	[4067] = {category = "stun", duration = 2}, -- Big Bronze Bomb
-	[4068] = {category = "stun", duration = 3}, -- Iron Grenade
-	[4069] = {category = "stun", duration = 3}, -- Big Iron Bomb
-	[12421] = {category = "stun", duration = 2}, -- Mithril Frag Bomb
-	[12543] = {category = "stun", duration = 3}, -- Hi-Explosive Bomb
-	[13237] = {category = "stun", duration = 3}, -- Goblin Mortar
-	[19769] = {category = "stun", duration = 3}, -- Thorium Grenade
-	[19784] = {category = "stun", duration = 4}, -- Dark Iron Bomb
+local SPELLS = XNDR_SPELLS or {} -- [spell ID] = {group, seconds, area, talent}
+
+-- the DR groups of WoW: Forever, in the order they are shown
+local GROUP_ORDER = {"stun", "kidney", "randomstun", "incapacitate", "fear", "charm", "silence", "root"}
+local GROUP_NAMES = {
+	stun = "Stuns", kidney = "Kidney Shot", randomstun = "Random stuns", incapacitate = "Incapacitates",
+	fear = "Fears", charm = "Mind Control", silence = "Silences", root = "Roots",
 }
 
--- the gadgets by item, so their use spells are found by name too if the IDs above differ on Forever
-local STUN_ITEMS = {
-	[4360] = 1, -- Rough Copper Bomb
-	[4370] = 1, -- Large Copper Bomb
-	[4374] = 2, -- Small Bronze Bomb
-	[4380] = 2, -- Big Bronze Bomb
-	[4390] = 3, -- Iron Grenade
-	[4394] = 3, -- Big Iron Bomb
-	[10513] = 2, -- Mithril Frag Bomb
-	[10562] = 3, -- Hi-Explosive Bomb
-	[10577] = 3, -- Goblin Mortar
-	[15993] = 3, -- Thorium Grenade
-	[16005] = 4, -- Dark Iron Bomb
+-- which spells give a group its icon: the first two of these you know, split along the diagonal
+-- (base rank IDs; any rank counts)
+local ICON_SPELLS = {
+	stun = {1833, 853, 5211, 20252, 12809, 100, 9005, 19577, 412788, 440488, 20549, 427745},
+	kidney = {408, 400009},
+	randomstun = {12355, 18093},
+	incapacitate = {118, 6770, 1776, 20066, 2637, 19503, 710, 9484, 1277331, 1277455},
+	fear = {5782, 6358, 8122, 5246, 5484, 1513, 2878},
+	charm = {605, 1098},
+	silence = {15487, 1766, 2139, 72},
+	root = {339, 122, 19185},
 }
-local STUN_NAMES = {
-	["Rough Copper Bomb"] = 1, ["Large Copper Bomb"] = 1, ["Small Bronze Bomb"] = 2, ["Big Bronze Bomb"] = 2,
-	["Iron Grenade"] = 3, ["Big Iron Bomb"] = 3, ["Mithril Frag Bomb"] = 2, ["Hi-Explosive Bomb"] = 3,
-	["Goblin Mortar"] = 3, ["Thorium Grenade"] = 3, ["Dark Iron Bomb"] = 4,
+-- when you know none of them (engineering bombs, or a class without that kind of CC)
+local FALLBACK_ICONS = {
+	stun = {"item:4390", "item:10577"}, -- Iron Grenade, Goblin Mortar
+	kidney = {408},
+	randomstun = {12355},
+	incapacitate = {118, 6770},
+	fear = {5782, 8122},
+	charm = {605},
+	silence = {15487, 1766},
+	root = {339, 122},
 }
-
--- the same spells by name, for ranks whose IDs differ on Forever (filled in at login)
-local SPELLS_BY_NAME = {}
-
-local CATEGORY_ORDER = {"fear", "horror", "banish", "stun"}
-
--- one icon per DR group; the fear group shows Fear and Seduction split along the diagonal
-local CATEGORY_ICONS = {
-	fear = {"Interface\\Icons\\Spell_Shadow_Possession", "Interface\\Icons\\Spell_Shadow_MindSteal"},
-	horror = {"Interface\\Icons\\Spell_Shadow_DeathCoil"},
-	banish = {"Interface\\Icons\\Spell_Shadow_Cripple"},
-	-- Iron Grenade and Goblin Mortar (the item icons replace these at login when the client has them)
-	stun = {"Interface\\Icons\\INV_Misc_Bomb_08", "Interface\\Icons\\INV_Misc_Bomb_04"},
-}
+-- pet spells your class always has, even while that pet isn't out
+local CLASS_PET_SPELLS = {WARLOCK = {[6358] = true}} -- Seduction
 
 -- duration multiplier of the 1st, 2nd and 3rd application; a 4th within the window does nothing
 local MULTIPLIER = {1, 0.5, 0.25}
@@ -88,6 +63,7 @@ local PERCENT_COLOR = {
 	{1, 0.1, 0.1}, -- 100%: red, immune
 }
 
+local DEFAULT_DURATION = 10 -- seconds, for the few spells the game data gives no length for
 local DUPLICATE_WINDOW = 1 -- a second report of the same group on the same player this soon is the same cast
 local DEBUFF_CHECKS = {0.3, 0.8} -- seconds after a cast to look for its debuff
 local TEST_PERIODS = {25, 20, 15} -- the test preview's countdowns for the three stages, looping
@@ -105,13 +81,19 @@ local DEFAULTS = {
 
 local db -- XNDRDB once the saved settings are loaded
 
--- [unit key][category] = {count = 1..3, expires = GetTime() when the DR is gone, applied = GetTime()}
+-- [unit key][group] = {count = 1..3, applied, ccEnds, expires, watch = {key, ids, filter}}
 local tracked = {}
 -- who your casts in flight were aimed at, by cast GUID
 local sentTargets = {}
+-- spell name -> entry, for spell ranks whose IDs change in a later client build (filled at login)
+local spellsByName = {}
+-- [group] = {texture, texture or nil} and the groups you can apply, worked out from your spells
+local groupIcons = {}
+local myGroups = {}
 
 local testMode = false
 local testStart = 0
+local probing = false
 
 local function CopyDefaults(source, target)
 	for key, value in pairs(source) do
@@ -136,6 +118,113 @@ local function Debug(message)
 	end
 end
 
+--[[ Spells ]]--
+
+-- whether you (or with pet = true, your pet) know a spell; talents count too
+local function Knows(spellID, pet)
+	local book = C_SpellBook
+	if not (book and book.IsSpellKnown) then
+		return false
+	end
+	local bank = pet and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Pet or nil
+	local ok, known = pcall(book.IsSpellKnown, spellID, bank)
+	if ok and Plain(known) then
+		return true
+	end
+	if not pet and book.IsSpellKnownOrInSpellBook then
+		ok, known = pcall(book.IsSpellKnownOrInSpellBook, spellID)
+		return ok and Plain(known) and true or false
+	end
+	return false
+end
+
+local function SpellName(spellID)
+	return Plain(C_Spell.GetSpellName(spellID))
+end
+
+-- the spell's DR entry, or nil if it puts nobody on DR (or needs a talent you don't have)
+local function SpellInfo(spellID)
+	local info = SPELLS[spellID]
+	if not info then
+		local name = SpellName(spellID)
+		info = name and spellsByName[name]
+	end
+	if not info then
+		return nil
+	end
+	if info[4] and not Knows(info[4]) then
+		return nil -- e.g. Kick only silences with Improved Kick
+	end
+	return info
+end
+
+local function BuildNameLookup()
+	wipe(spellsByName)
+	local conflicts = {}
+	for spellID, info in pairs(SPELLS) do
+		local name = SpellName(spellID)
+		if name then
+			local known = spellsByName[name]
+			if known and known[1] ~= info[1] then
+				conflicts[name] = true -- the same name in two groups: only exact IDs count
+			elseif not known or (info[2] or 0) > (known[2] or 0) then
+				spellsByName[name] = info
+			end
+		end
+	end
+	for name in pairs(conflicts) do
+		spellsByName[name] = nil
+	end
+end
+
+local function IconFor(source)
+	if type(source) == "string" then
+		return Plain(C_Item.GetItemIconByID(tonumber(source:match("item:(%d+)"))))
+	end
+	return Plain(C_Spell.GetSpellTexture(source))
+end
+
+-- the names of every spell you (or your pet, or your class's pets) can cast, per group
+local function KnownSpellNames()
+	local _, class = UnitClass("player")
+	local classPets = CLASS_PET_SPELLS[class] or {}
+	local known = {}
+	for spellID, info in pairs(SPELLS) do
+		local isKnown = classPets[spellID] or Knows(spellID) or Knows(spellID, true)
+		if isKnown and not (info[4] and not Knows(info[4])) then
+			local name = SpellName(spellID)
+			if name then
+				known[name] = true
+			end
+		end
+	end
+	return known
+end
+
+-- each group's icon: the first two spells of ICON_SPELLS you know, else the fallback pair
+local function UpdateGroupIcons()
+	local known = KnownSpellNames()
+	wipe(myGroups)
+	for _, group in ipairs(GROUP_ORDER) do
+		local textures = {}
+		for _, spellID in ipairs(ICON_SPELLS[group]) do
+			local name = SpellName(spellID)
+			if name and known[name] and #textures < 2 then
+				textures[#textures + 1] = IconFor(spellID)
+			end
+		end
+		if #textures > 0 then
+			myGroups[#myGroups + 1] = group
+		else
+			for _, source in ipairs(FALLBACK_ICONS[group]) do
+				textures[#textures + 1] = IconFor(source)
+			end
+		end
+		textures[1] = textures[1] or "Interface\\Icons\\INV_Misc_QuestionMark"
+		groupIcons[group] = textures
+	end
+end
+
 --[[ Units ]]--
 
 -- what XNDR remembers a unit by: its GUID, or its name when the GUID is hidden
@@ -150,11 +239,13 @@ local function UnitLabel(unit)
 	return Plain(GetUnitName(unit, true)) or unit
 end
 
--- an enemy player or player-controlled pet (PvP DR counts against both; pets matter for Banish)
+-- an enemy player or player-controlled pet (PvP DR counts against both)
 local function IsEnemyPlayer(unit)
 	return Plain(UnitExists(unit)) and (Plain(UnitIsPlayer(unit)) or Plain(UnitPlayerControlled(unit)))
 		and Plain(UnitCanAttack("player", unit)) and true or false
 end
+
+local WATCH_UNITS = {"target", "focus", "mouseover", "pettarget"}
 
 -- the unit among target, focus and mouseover that a cast was sent at, by name
 local function UnitByName(name)
@@ -170,7 +261,7 @@ end
 
 -- a unit token that shows the player XNDR remembers by this key right now
 local function UnitForKey(key)
-	for _, unit in ipairs({"target", "focus", "mouseover", "pettarget"}) do
+	for _, unit in ipairs(WATCH_UNITS) do
 		if UnitKey(unit) == key then
 			return unit
 		end
@@ -239,7 +330,7 @@ local SNAPSHOT_AGE = 10
 
 local function TakeSnapshots(filter)
 	local now = GetTime()
-	for _, unit in ipairs({"target", "focus", "mouseover", "pettarget"}) do
+	for _, unit in ipairs(WATCH_UNITS) do
 		local key = IsEnemyPlayer(unit) and UnitKey(unit)
 		if key then
 			local ids = DebuffIDs(unit, filter)
@@ -248,8 +339,8 @@ local function TakeSnapshots(filter)
 	end
 end
 
--- true if a debuff appeared on the unit since the snapshot, false if none did, nil if unknown
-local function GainedDebuff(unit, key, filter)
+-- the debuffs that appeared on the unit since the snapshot (a set, maybe empty), or nil if unknown
+local function NewDebuffs(unit, key, filter)
 	local before = snapshots[filter][key]
 	if not before or GetTime() - before.time > SNAPSHOT_AGE then
 		return nil
@@ -258,20 +349,22 @@ local function GainedDebuff(unit, key, filter)
 	if not after then
 		return nil
 	end
+	local new = {}
 	for id in pairs(after) do
 		if not before.ids[id] then
-			return true
+			new[id] = true
 		end
 	end
-	return false
+	return new
 end
 
 --[[ Tracking ]]--
 
-local function Record(key, label, info, spellName)
+local function Record(key, label, info, spellName, watch)
 	local now = GetTime()
+	local group = info[1]
 	tracked[key] = tracked[key] or {}
-	local entry = tracked[key][info.category]
+	local entry = tracked[key][group]
 	if entry and entry.expires > now then
 		if now - entry.applied < DUPLICATE_WINDOW then
 			Debug(spellName .. " on " .. label .. ": same cast reported twice, not counted again")
@@ -283,42 +376,51 @@ local function Record(key, label, info, spellName)
 		entry.count = entry.count + 1
 	else
 		entry = {count = 1}
-		tracked[key][info.category] = entry
+		tracked[key][group] = entry
 	end
 	entry.applied = now
-	entry.expires = now + info.duration * MULTIPLIER[entry.count] + db.reset
-	Debug(spellName .. " on " .. label .. ": application " .. entry.count .. ", DR now " .. PERCENT[entry.count] .. "%")
+	entry.ccEnds = now + (info[2] or DEFAULT_DURATION) * MULTIPLIER[entry.count]
+	entry.expires = entry.ccEnds + db.reset
+	entry.watch = watch
+	Debug(spellName .. " on " .. label .. ": " .. GROUP_NAMES[group] .. " application " .. entry.count
+		.. ", next one " .. (entry.count >= 3 and "immune" or PERCENT[entry.count] .. "% shorter"))
 end
 
 -- counts a cast on a player once its debuff has had time to show; a cast that was grounded
--- (Grounding Totem), resisted or immuned leaves no debuff and adds no DR
-local function ApplyToKey(key, label, info, spellName, filter)
+-- (Grounding Totem), resisted or immuned leaves no debuff and adds no DR.
+-- ifUnknown(unit) decides when the client won't say whether anything landed.
+local function ApplyToKey(key, label, info, spellName, filter, ifUnknown)
+	filter = filter or PLAYER_FILTER
 	local check = 1
 	local function Check()
 		local unit = UnitForKey(key)
-		local landed
+		local landed, new
 		if unit then
+			new = NewDebuffs(unit, key, filter)
 			landed = HasDebuff(unit, spellName)
-			if landed == nil then
-				landed = GainedDebuff(unit, key, filter or PLAYER_FILTER) -- names hidden in combat: look for any new debuff
+			if landed == nil and new then
+				landed = next(new) ~= nil -- names hidden in combat: any new debuff of yours
 			end
 		end
 		if landed == false and DEBUFF_CHECKS[check + 1] then
 			check = check + 1
 			C_Timer.After(DEBUFF_CHECKS[check] - DEBUFF_CHECKS[check - 1], Check)
 		elseif landed == false then
-			Debug(spellName .. " on " .. label .. ": no debuff landed (grounded, resisted or immune), not counted")
+			Debug(spellName .. " on " .. label .. ": no debuff landed (grounded, resisted, immune or out of reach), not counted")
+		elseif landed == nil and ifUnknown and not ifUnknown(unit) then
+			Debug(spellName .. " on " .. label .. ": can't see whether it landed, probably out of reach, not counted")
 		else
 			if landed == nil then
 				Debug(spellName .. " on " .. label .. ": can't see the debuffs, counted anyway")
 			end
-			Record(key, label, info, spellName)
+			local watch = new and next(new) and {key = key, ids = new, filter = filter} or nil
+			Record(key, label, info, spellName, watch)
 		end
 	end
 	C_Timer.After(DEBUFF_CHECKS[1], Check)
 end
 
-local function Apply(unit, info, spellName, filter)
+local function Apply(unit, info, spellName, filter, ifUnknown)
 	if not IsEnemyPlayer(unit) then
 		return
 	end
@@ -327,16 +429,7 @@ local function Apply(unit, info, spellName, filter)
 		Debug(spellName .. ": the client hides who the target is, not counted")
 		return
 	end
-	ApplyToKey(key, UnitLabel(unit), info, spellName, filter)
-end
-
-local function SpellInfo(spellID)
-	local info = SPELLS[spellID]
-	if info then
-		return info
-	end
-	local name = C_Spell.GetSpellName(spellID)
-	return name and SPELLS_BY_NAME[name]
+	ApplyToKey(key, UnitLabel(unit), info, spellName, filter, ifUnknown)
 end
 
 -- remembers who a cast was aimed at when you pressed it, so switching targets mid-cast
@@ -358,6 +451,14 @@ local function OnSpellSent(castGUID, targetName, spellID)
 	end
 end
 
+local function NearYou(unit)
+	return WithinTenYards(unit) ~= false -- range unknown: assume it was in reach
+end
+
+local function IsTarget(unit)
+	return unit == "target"
+end
+
 local function OnSpellSucceeded(unit, castGUID, spellID)
 	spellID = Plain(spellID)
 	castGUID = Plain(castGUID)
@@ -369,41 +470,67 @@ local function OnSpellSucceeded(unit, castGUID, spellID)
 	if not info then
 		return
 	end
-	local spellName = C_Spell.GetSpellName(spellID) or tostring(spellID)
-	Debug(unit .. " cast " .. spellName .. " (" .. spellID .. ")")
+	local spellName = SpellName(spellID) or tostring(spellID)
+	local filter = unit == "pet" and PET_FILTER or PLAYER_FILTER
+	Debug(unit .. " cast " .. spellName .. " (" .. spellID .. ", " .. GROUP_NAMES[info[1]] .. ")")
 
-	if info.aoe then
-		-- Howl of Terror has no target: count it on the target and focus if they were in range
+	if info[3] then
+		-- an area spell: every enemy in view that it landed on. When the client won't say, one
+		-- around you counts if they are within 10 yards, one at a point counts on your target.
+		local ifUnknown = info[3] == "caster" and NearYou or IsTarget
 		local done = {}
 		for _, victim in ipairs({"target", "focus"}) do
 			local key = IsEnemyPlayer(victim) and UnitKey(victim)
 			if key and not done[key] then
-				local near = WithinTenYards(victim)
-				-- when the range can't be checked, assume your target was in it
-				if near or (near == nil and victim == "target") then
-					done[key] = true
-					Apply(victim, info, spellName)
-				end
+				done[key] = true
+				Apply(victim, info, spellName, filter, ifUnknown)
 			end
 		end
 	elseif unit == "pet" then
-		Apply(IsEnemyPlayer("pettarget") and "pettarget" or "target", info, spellName, PET_FILTER)
+		Apply(IsEnemyPlayer("pettarget") and "pettarget" or "target", info, spellName, filter)
 	elseif sent then
-		ApplyToKey(sent.key, sent.label, info, spellName)
+		ApplyToKey(sent.key, sent.label, info, spellName, filter)
 	elseif sent == nil then
-		Apply("target", info, spellName) -- no record of the cast being sent: assume your target
+		Apply("target", info, spellName, filter) -- no record of the cast being sent: assume your target
 	end
 end
 
-local function ForgetExpired()
-	local now = GetTime()
-	for key, categories in pairs(tracked) do
-		for category, entry in pairs(categories) do
-			if entry.expires <= now then
-				categories[category] = nil
+-- a CC that visibly ended early (broken by damage, dispelled, trinketed): the DR starts
+-- running out from now instead of from the latest possible end
+local function WatchEnds(now)
+	for key, groups in pairs(tracked) do
+		for _, entry in pairs(groups) do
+			local watch = entry.watch
+			if watch and entry.ccEnds > now then
+				local unit = UnitForKey(key)
+				local ids = unit and DebuffIDs(unit, watch.filter)
+				if ids then
+					local left = false
+					for id in pairs(watch.ids) do
+						if ids[id] then
+							left = true
+							break
+						end
+					end
+					if not left then
+						entry.ccEnds = now
+						entry.expires = now + db.reset
+						entry.watch = nil
+					end
+				end
 			end
 		end
-		if not next(categories) then
+	end
+end
+
+local function ForgetExpired(now)
+	for key, groups in pairs(tracked) do
+		for group, entry in pairs(groups) do
+			if entry.expires <= now then
+				groups[group] = nil
+			end
+		end
+		if not next(groups) then
 			tracked[key] = nil
 		end
 	end
@@ -412,7 +539,8 @@ end
 --[[ Display ]]--
 
 local FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
-local MAX_ICONS = math.max(3, #CATEGORY_ORDER)
+local MAX_ICONS = #GROUP_ORDER
+local ICON_GAP = 6
 local trays = {}
 
 local function CreateIcon(tray)
@@ -443,6 +571,17 @@ local function CreateIcon(tray)
 	icon.Timer:SetPoint("TOP", icon, "BOTTOM", 0, -2)
 	icon.Timer:SetTextColor(1, 1, 1)
 
+	icon:SetScript("OnEnter", function(self)
+		if self.group then
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+			GameTooltip:AddLine(GROUP_NAMES[self.group])
+			GameTooltip:AddLine(self.count >= 3 and "Immune until the timer runs out"
+				or "Next one " .. PERCENT[self.count] .. "% shorter", 1, 1, 1)
+			GameTooltip:Show()
+		end
+	end)
+	icon:SetScript("OnLeave", GameTooltip_Hide)
+
 	icon:Hide()
 	return icon
 end
@@ -456,14 +595,14 @@ end
 -- sizes and fonts from the settings
 local function LayoutTray(tray)
 	local size = db.size
-	tray:SetSize(size * MAX_ICONS + 6 * (MAX_ICONS - 1), size)
+	tray:SetSize(size * MAX_ICONS + ICON_GAP * (MAX_ICONS - 1), size)
 	for i, icon in ipairs(tray.icons) do
 		icon:SetSize(size, size)
 		icon:ClearAllPoints()
 		if i == 1 then
 			icon:SetPoint("LEFT", tray, "LEFT", 0, 0)
 		else
-			icon:SetPoint("LEFT", tray.icons[i - 1], "RIGHT", 6, 0)
+			icon:SetPoint("LEFT", tray.icons[i - 1], "RIGHT", ICON_GAP, 0)
 		end
 		icon.Percent:SetFont(FONT, db.fontSize, "OUTLINE")
 		icon.Timer:SetFont(FONT, db.fontSize, "OUTLINE")
@@ -532,8 +671,9 @@ local function CreateTray(unitFrame, unit)
 	trays[#trays + 1] = tray
 end
 
-local function ShowIcon(icon, category, count, remaining)
-	local textures = CATEGORY_ICONS[category]
+local function ShowIcon(icon, group, count, remaining)
+	local textures = groupIcons[group] or {"Interface\\Icons\\INV_Misc_QuestionMark"}
+	icon.group, icon.count = group, count
 	icon.Texture:SetTexture(textures[1])
 	icon.Texture2:SetTexture(textures[2])
 	icon.Texture2:SetShown(textures[2] ~= nil)
@@ -548,6 +688,14 @@ local function ShowIcon(icon, category, count, remaining)
 	icon:Show()
 end
 
+-- the groups the test shows: yours, or three common ones if your class has none
+local function TestGroups()
+	if #myGroups > 0 then
+		return myGroups
+	end
+	return {"stun", "incapacitate", "fear"}
+end
+
 local function UpdateTray(tray, now)
 	local enabled = db[tray.unit]
 	-- follow the unit frame's scale (Edit Mode can resize it)
@@ -555,20 +703,21 @@ local function UpdateTray(tray, now)
 
 	local shown = 0
 	if testMode and enabled then
-		-- all three stages of the fear group, with looping countdowns
-		for count = 1, 3 do
+		-- each of your groups side by side, going through the three stages
+		for i, group in ipairs(TestGroups()) do
+			local count = (i - 1) % 3 + 1
 			local period = TEST_PERIODS[count]
 			shown = shown + 1
-			ShowIcon(tray.icons[shown], "fear", count, period - ((now - testStart) % period))
+			ShowIcon(tray.icons[shown], group, count, period - ((now - testStart) % period))
 		end
 	elseif enabled and tray.unitFrame:IsVisible() then
 		local key = UnitKey(tray.unit)
-		local categories = key and tracked[key]
-		for _, category in ipairs(CATEGORY_ORDER) do
-			local entry = categories and categories[category]
+		local groups = key and tracked[key]
+		for _, group in ipairs(GROUP_ORDER) do
+			local entry = groups and groups[group]
 			if entry and entry.expires > now then
 				shown = shown + 1
-				ShowIcon(tray.icons[shown], category, entry.count, entry.expires - now)
+				ShowIcon(tray.icons[shown], group, entry.count, entry.expires - now)
 			end
 		end
 	end
@@ -582,8 +731,9 @@ local function UpdateAll()
 	if not db then
 		return
 	end
-	ForgetExpired()
 	local now = GetTime()
+	WatchEnds(now)
+	ForgetExpired(now)
 	for _, tray in ipairs(trays) do
 		UpdateTray(tray, now)
 	end
@@ -596,6 +746,11 @@ local function SetTestMode(on)
 		tray:EnableMouse(testMode)
 		tray.Highlight:SetShown(testMode)
 		tray.Label:SetShown(testMode)
+		-- the icons show their tooltip only outside the test, so they don't catch the drag
+		for _, icon in ipairs(tray.icons) do
+			icon:SetMouseMotionEnabled(not testMode)
+			icon:SetMouseClickEnabled(false) -- hover only: clicks go through to the game
+		end
 		if not testMode then
 			TrayOnMouseUp(tray)
 		end
@@ -604,6 +759,32 @@ local function SetTestMode(on)
 		XNDROptions.TestButton:SetText(testMode and "Stop test" or "Test all 3 stages")
 	end
 	UpdateAll()
+end
+
+--[[ Blizzard's own DR updates (probe) ]]--
+
+-- WoW: Forever has a DR system of its own that reports DR changes to its arena frames. Whether an
+-- addon may read those reports is unknown, so /xndr probe prints what arrives, for finding out.
+local function Describe(value)
+	if IsSecret(value) then
+		return "secret"
+	end
+	return tostring(value)
+end
+
+local function OnDiminishUpdate(unit, info)
+	local fields = {}
+	if IsSecret(info) then
+		fields[1] = "the whole report is secret"
+	elseif type(info) == "table" then
+		for _, field in ipairs({"category", "startTime", "duration", "showCountdown", "isImmune"}) do
+			local ok, value = pcall(function() return info[field] end)
+			fields[#fields + 1] = field .. "=" .. (ok and Describe(value) or "error")
+		end
+	else
+		fields[1] = Describe(info)
+	end
+	Print("probe: DR report for " .. Describe(unit) .. ": " .. table.concat(fields, ", "))
 end
 
 --[[ Options window ]]--
@@ -760,6 +941,7 @@ end
 --[[ Minimap button ]]--
 
 local minimapButton
+local minimapIcon
 
 local function PlaceMinimapButton()
 	local angle = math.rad(db.minimap.angle)
@@ -779,6 +961,8 @@ end
 function UpdateMinimapButton()
 	if minimapButton then
 		minimapButton:SetShown(not db.minimap.hide)
+		local first = myGroups[1] and groupIcons[myGroups[1]]
+		minimapIcon:SetTexture(first and first[1] or "Interface\\Icons\\Spell_Shadow_Possession")
 	end
 end
 
@@ -798,11 +982,10 @@ local function CreateMinimapButton()
 	background:SetSize(20, 20)
 	background:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
 	background:SetPoint("TOPLEFT", 7, -5)
-	local icon = minimapButton:CreateTexture(nil, "ARTWORK")
-	icon:SetSize(17, 17)
-	icon:SetTexture(CATEGORY_ICONS.fear[1])
-	icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-	icon:SetPoint("TOPLEFT", 7, -6)
+	minimapIcon = minimapButton:CreateTexture(nil, "ARTWORK")
+	minimapIcon:SetSize(17, 17)
+	minimapIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+	minimapIcon:SetPoint("TOPLEFT", 7, -6)
 	local border = minimapButton:CreateTexture(nil, "OVERLAY")
 	border:SetSize(53, 53)
 	border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
@@ -853,7 +1036,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		local _, targetName, castGUID = ...
 		OnSpellSent(castGUID, targetName, select(4, ...))
 	elseif event == "UNIT_SPELLCAST_START" then
-		-- your pet's casts send no UNIT_SPELLCAST_SENT: look at the debuffs when Seduction starts
+		-- your pet's casts send no UNIT_SPELLCAST_SENT: look at the debuffs when its CC starts
 		local spellID = Plain(select(3, ...))
 		if spellID and SpellInfo(spellID) then
 			TakeSnapshots(PET_FILTER)
@@ -862,36 +1045,28 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		OnSpellSucceeded(...)
 	elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
 		UpdateAll()
+	elseif event == "SPELLS_CHANGED" or event == "UNIT_PET" then
+		UpdateGroupIcons()
+		if minimapButton then
+			UpdateMinimapButton()
+		end
+	elseif event == "UNIT_SPELL_DIMINISH_CATEGORY_STATE_UPDATED" then
+		if probing then
+			OnDiminishUpdate(...)
+		end
 	elseif event == "ADDON_LOADED" and ... == "XNDR" then
 		XNDRDB = XNDRDB or {}
 		db = XNDRDB
 		CopyDefaults(DEFAULTS, db)
 	elseif event == "PLAYER_LOGIN" then
-		for spellID, info in pairs(SPELLS) do
-			local name = C_Spell.GetSpellName(spellID)
-			if name then
-				local known = SPELLS_BY_NAME[name]
-				if not known or info.duration > known.duration then
-					SPELLS_BY_NAME[name] = info
-				end
-			end
-		end
-		-- stun gadgets by name: their English names, and the use spells of the items themselves
-		for name, duration in pairs(STUN_NAMES) do
-			SPELLS_BY_NAME[name] = SPELLS_BY_NAME[name] or {category = "stun", duration = duration}
-		end
-		for itemID, duration in pairs(STUN_ITEMS) do
-			local spellName = C_Item.GetItemSpell(itemID)
-			if spellName and not IsSecret(spellName) then
-				SPELLS_BY_NAME[spellName] = SPELLS_BY_NAME[spellName] or {category = "stun", duration = duration}
-			end
-		end
-		CATEGORY_ICONS.stun[1] = C_Item.GetItemIconByID(4390) or CATEGORY_ICONS.stun[1] -- Iron Grenade
-		CATEGORY_ICONS.stun[2] = C_Item.GetItemIconByID(10577) or CATEGORY_ICONS.stun[2] -- Goblin Mortar
+		BuildNameLookup()
+		UpdateGroupIcons()
 		CreateTray(TargetFrame, "target")
 		CreateTray(FocusFrame, "focus")
 		SetTestMode(false)
 		CreateMinimapButton()
+		frame:RegisterEvent("SPELLS_CHANGED")
+		frame:RegisterUnitEvent("UNIT_PET", "player")
 	end
 end)
 
@@ -905,12 +1080,27 @@ frame:RegisterUnitEvent("UNIT_SPELLCAST_START", "pet")
 
 --[[ Slash command ]]--
 
+local function ToggleProbe()
+	probing = not probing
+	if probing then
+		local ok = pcall(frame.RegisterEvent, frame, "UNIT_SPELL_DIMINISH_CATEGORY_STATE_UPDATED")
+		local supported = C_SpellDiminish and C_SpellDiminish.IsSystemSupported
+			and Describe(select(2, pcall(C_SpellDiminish.IsSystemSupported))) or "no such function"
+		local cvar = C_CVar and Describe(C_CVar.GetCVar("spellDiminishPVPEnemiesEnabled")) or "?"
+		Print("probe on" .. (ok and "" or " (the game refused the event)") .. ". DR system supported: "
+			.. supported .. ", enemy DR display setting: " .. cvar .. ". CC an enemy player and watch the chat.")
+	else
+		pcall(frame.UnregisterEvent, frame, "UNIT_SPELL_DIMINISH_CATEGORY_STATE_UPDATED")
+		Print("probe off.")
+	end
+end
+
 SLASH_XNDR1 = "/xndr"
 SlashCmdList.XNDR = function(message)
 	local command, argument = strsplit(" ", strlower(strtrim(message or "")), 2)
 	if command == "test" then
 		SetTestMode(not testMode)
-		Print(testMode and "test on: all 3 stages are shown, drag them to move them." or "test off.")
+		Print(testMode and "test on: your DR groups are shown, drag them to move them." or "test off.")
 	elseif command == "reset" and tonumber(argument) then
 		db.reset = tonumber(argument)
 		Print("DR reset window set to " .. db.reset .. " seconds.")
@@ -924,13 +1114,23 @@ SlashCmdList.XNDR = function(message)
 		wipe(tracked)
 		UpdateAll()
 		Print("cleared.")
+	elseif command == "probe" then
+		ToggleProbe()
+	elseif command == "groups" then
+		local names = {}
+		for _, group in ipairs(myGroups) do
+			names[#names + 1] = GROUP_NAMES[group]
+		end
+		Print("your DR groups: " .. (#names > 0 and table.concat(names, ", ") or "none found among your spells"))
 	elseif command == "help" then
 		Print("/xndr - settings")
-		Print("/xndr test - show all 3 stages and move the icons")
+		Print("/xndr test - show your DR groups and move the icons")
+		Print("/xndr groups - list the DR groups your spells can apply")
 		Print("/xndr reset <seconds> - DR reset window (now " .. db.reset .. ")")
 		Print("/xndr debug - print every cast XNDR counts or skips")
 		Print("/xndr minimap - show or hide the minimap button")
 		Print("/xndr clear - forget everything tracked")
+		Print("/xndr probe - print the game's own DR reports, if the game lets addons see them")
 	else
 		ToggleOptions()
 	end

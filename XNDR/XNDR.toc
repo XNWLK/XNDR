@@ -1,10 +1,11 @@
 ## Interface: 16001
 ## Title: XNDR
-## Notes: Diminishing returns of your own Fear, Howl of Terror, Seduction, Death Coil, Banish and engineering stuns, shown next to the target and focus portraits. Type /xndr
+## Notes: Diminishing returns of your crowd control for every class: stuns, incapacitates, fears, silences, roots and more, shown next to the target and focus portraits. Type /xndr
 ## Author: Xn
-## Version: 1.0.0
+## Version: 2.0.0
 ## X-Website: https://www.curseforge.com/wow/addons/xndr
 ## SavedVariables: XNDRDB
 ## IconTexture: Interface\Icons\Spell_Shadow_Possession
 
+Spells.lua
 XNDR.lua
