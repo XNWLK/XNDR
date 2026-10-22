@@ -6,13 +6,18 @@ countdown until the DR is gone.
 
 Made for Warlocks: Fear, Howl of Terror, Seduction, Death Coil, Banish, plus the engineering stun gadgets.
 
+**Download it on [CurseForge](https://www.curseforge.com/wow/addons/xndr)** (or from the
+[Releases page](https://github.com/XNWLK/XNDR/releases) here).
+
 > Built for the WoW: Forever client (interface 16001). What changed in each version: [changelog](CHANGELOG.md).
 
 ## Install
 
-1. Download `XNDR-x.y.z.zip` from the newest entry on the [Releases page](https://github.com/XNWLK/XNDR/releases).
+1. Install it from [CurseForge](https://www.curseforge.com/wow/addons/xndr) (with the CurseForge app, or download the
+   file there), or download `XNDR-x.y.z.zip` from the newest entry on the
+   [Releases page](https://github.com/XNWLK/XNDR/releases).
 2. Unzip it into `World of Warcraft\_forever_\Interface\AddOns`, so that there is a folder `AddOns\XNDR`.
-   (To update, unzip over the old folder.)
+   (To update, unzip over the old folder. The CurseForge app does this step for you.)
 3. Restart the game and tick **XNDR** in the AddOns list.
 4. Fear someone, or type `/xndr test` to see how it looks.
 
